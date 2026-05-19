@@ -185,6 +185,8 @@
         .tag { display: inline-block; padding: 6px 20px; border-radius: 20px; font-weight: bold; margin-bottom: 10px; font-size: 0.9rem; }
         .tag-focus { background: #ffebee; color: #d32f2f; }
         .tag-rest { background: #e0f2f1; color: #00796b; }
+        
+        #noticeText { color: #cc3300; font-weight: bold; margin: 15px 0; font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -194,10 +196,7 @@
         <div class="scroll-text-layer layer-2" id="txt2"></div>
     </div>
 
-    <div id="finalMessage">
-        回頭看 輕舟已過萬重山<br>
-        往前看 前路亦漫漫
-    </div>
+    <div id="finalMessage"></div>
 
     <div id="cloudSpace"></div>
 
@@ -228,6 +227,12 @@
                 <div id="modeTag" class="tag"></div>
                 <h2 id="taskTitle" style="color:#555; margin:0;"></h2>
                 <div id="timerText">00:00</div>
+                
+                <div id="noticeArea" class="hidden">
+                    <div id="noticeText">₍ᵔ.˛.ᵔ₎‼‼‼</div>
+                    <button onclick="confirmToRest()">確定進入休息</button>
+                </div>
+                
                 <button id="pauseBtn" onclick="togglePause()">STOP</button>
             </div>
 
@@ -267,18 +272,13 @@
         }
         makeClouds();
 
-        // 切換色彩設置面板顯示狀態
         function toggleSettings() {
             const panel = document.getElementById('colorPanel');
             panel.classList.toggle('hidden');
         }
 
-        // 變更主色系功能
         function changeTheme(color, element) {
-            // 變更 CSS 全域變數
             document.documentElement.style.setProperty('--primary-color', color);
-            
-            // 更換選取點的 active 狀態
             document.querySelectorAll('.color-dot').forEach(dot => dot.classList.remove('active'));
             element.classList.add('active');
         }
@@ -289,12 +289,16 @@
             rMin = parseInt(document.getElementById('restTime').value) || 0;
             if (fMin <= 0) return alert("請輸入專注時間");
 
-            document.getElementById('gearBtn').style.display = 'none'; // 開始後隱藏設定紐
+            document.getElementById('gearBtn').style.display = 'none'; 
             document.getElementById('scrollContainer').style.display = 'block';
             
             state = 'focus';
             timerSec = fMin * 60;
             stopCount = 0;
+            
+            document.getElementById('noticeArea').classList.add('hidden');
+            document.getElementById('pauseBtn').style.display = 'inline-block';
+            
             showPage('timerPage');
             refreshUI();
             startClock();
@@ -308,16 +312,32 @@
                     renderTime();
                     if (timerSec <= 0) {
                         if (state === 'focus') {
-                            state = 'rest';
-                            timerSec = rMin * 60;
-                            if (timerSec <= 0) endAll();
-                            else refreshUI();
+                            // 專注時間到，暫停時鐘，並顯示需要使用者點擊確定的提示畫面
+                            clearInterval(clock);
+                            document.getElementById('pauseBtn').style.display = 'none';
+                            document.getElementById('noticeArea').classList.remove('hidden');
                         } else {
                             endAll();
                         }
                     }
                 }
             }, 1000);
+        }
+
+        // 按下確定紐後正式進入休息模式
+        function confirmToRest() {
+            document.getElementById('noticeArea').classList.add('hidden');
+            document.getElementById('pauseBtn').style.display = 'inline-block';
+            
+            state = 'rest';
+            timerSec = rMin * 60;
+            
+            if (timerSec <= 0) {
+                endAll();
+            } else {
+                refreshUI();
+                startClock();
+            }
         }
 
         function refreshUI() {
@@ -352,9 +372,21 @@
             saveToLogs();
             document.getElementById('scrollContainer').style.display = 'none';
             
-            const msg = document.getElementById('finalMessage');
-            msg.style.display = 'block';
-            setTimeout(() => { msg.style.display = 'none'; }, 30000);
+            // 判斷金句機制
+            // 條件1：平均5分鐘就暫停一次（專注總分鐘數 ÷ 暫停次數 <= 5）
+            // 條件2：總暫停次數超過 10 次
+            const isTooManyPauses = (stopCount > 0 && (fMin / stopCount) <= 5);
+            const isOverTenTimes = (stopCount > 10);
+            
+            const msgBox = document.getElementById('finalMessage');
+            if (isTooManyPauses || isOverTenTimes) {
+                msgBox.innerHTML = `千里之堤 潰於蟻穴<br>你可以更好`;
+            } else {
+                msgBox.innerHTML = `回頭看 輕舟已過萬重山<br>往前看 前路亦漫漫`;
+            }
+            
+            msgBox.style.display = 'block';
+            setTimeout(() => { msgBox.style.display = 'none'; }, 30000);
 
             showPage('resultPage');
             document.getElementById('sessionResult').innerHTML = `
@@ -390,7 +422,7 @@
             document.getElementById(id).classList.remove('hidden');
             if(id === 'setupPage') {
                 document.getElementById('gearBtn').style.display = 'block';
-                document.getElementById('colorPanel').classList.add('hidden'); // 返回時面板先收起來
+                document.getElementById('colorPanel').classList.add('hidden'); 
             }
         }
     </script>
