@@ -6,297 +6,312 @@
     <title>專注♡⸝⸝番茄鐘</title>
     <style>
         :root {
-            --primary-color: #ffb7c5;
-            --bg-color: #fffaf0;
-            --cloud-border: #ffb7c5;
-            --cloud-texture: rgba(255, 183, 197, 0.3);
+            --primary-pink: #ffb7c5;
+            --bg-cream: #fffaf0;
+            --text-black: #1a1a1a;
+            --cloud-texture: rgba(255, 183, 197, 0.15);
         }
-        
+
+        * { box-sizing: border-box; }
+
         body {
-            font-family: "Microsoft JhengHei", sans-serif;
-            background-color: var(--bg-color);
+            background-color: var(--bg-cream);
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
+            font-family: "Noto Serif TC", "Microsoft JhengHei", serif;
             overflow: hidden;
         }
 
-        /* 滿屏循環滾動文字 */
-        #scrollBackground {
+        /* 無限無縫捲軸文字 */
+        #scrollContainer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            color: rgba(0, 0, 0, 0.15); 
-            font-family: "KaiTi", "標楷體", serif;
-            font-size: 2.5rem; 
-            line-height: 1.8;
-            padding: 40px;
-            white-space: normal;
             z-index: 0;
             display: none;
             overflow: hidden;
-            user-select: none;
         }
 
-        @keyframes scrollText {
-            from { transform: translateY(100%); }
+        .scroll-text-layer {
+            position: absolute;
+            width: 100%;
+            color: rgba(0, 0, 0, 0.15); 
+            font-family: "KaiTi", "標楷體", serif;
+            font-size: 2.2rem;
+            line-height: 2;
+            padding: 60px;
+            text-align: justify;
+            white-space: pre-wrap;
+            animation: infiniteLoop 50s linear infinite;
+        }
+
+        .layer-2 { top: 100%; }
+
+        @keyframes infiniteLoop {
+            from { transform: translateY(0); }
             to { transform: translateY(-100%); }
         }
 
-        .scrolling {
-            animation: scrollText 40s linear infinite;
+        /* 終點金句：30秒消失 */
+        #finalMessage {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.98);
+            padding: 60px 100px;
+            border-radius: 100px;
+            box-shadow: 0 20px 60px rgba(255, 183, 197, 0.4);
+            z-index: 1000;
+            text-align: center;
+            color: #d17a8a;
+            font-size: 2.2rem;
+            border: 2px solid var(--primary-pink);
+            display: none;
+            line-height: 1.6;
         }
 
-        /* 恢復原本的 CSS 翅膀樣式 */
-        .wing-container {
+        /* 主應用區域 */
+        .app-container {
             position: relative;
             z-index: 10;
         }
 
-        .wing {
-            position: absolute;
-            width: 80px;
-            height: 120px;
+        #appBox {
             background: white;
-            border-radius: 50% 50% 10% 80%;
-            top: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            z-index: -1;
-        }
-        .wing-left { left: -60px; transform: rotate(-20deg); }
-        .wing-right { right: -60px; transform: rotate(20deg) scaleX(-1); }
-
-        #app {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            width: 350px;
+            padding: 3.5rem;
+            border-radius: 45px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.06);
+            width: 420px;
             text-align: center;
+            border: 1px solid rgba(255, 183, 197, 0.2);
         }
 
-        h1 { color: var(--primary-color); font-size: 1.6rem; margin-top: 0; }
+        h1 { color: var(--primary-pink); font-size: 2rem; margin-top: 0; letter-spacing: 1px; }
         
         input {
-            width: 85%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 2px solid #fef0f2;
-            border-radius: 15px;
+            width: 100%;
+            padding: 16px;
+            margin: 12px 0;
+            border: 2px solid #fff5f7;
+            border-radius: 18px;
             outline: none;
-            background: #fffafa;
+            background: #fffcfd;
+            font-size: 1rem;
+            transition: 0.3s;
         }
+        input:focus { border-color: var(--primary-pink); }
 
         button {
-            padding: 10px 25px;
+            padding: 12px 28px;
             border: none;
-            border-radius: 25px;
-            background: var(--primary-color);
+            border-radius: 30px;
+            background: var(--primary-pink);
             color: white;
             cursor: pointer;
             font-weight: bold;
-            margin: 8px;
-            transition: transform 0.2s;
+            margin: 10px 5px;
+            transition: 0.3s;
         }
-        button:hover { transform: scale(1.05); }
+        button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255, 183, 197, 0.4); }
 
-        /* 恢復原本的 CSS 雲朵樣式：粉色邊框與淺粉紋理 */
-        .cloud-container {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-        .cloud {
+        /* 背景雲朵 */
+        .floating-cloud {
             position: absolute;
             background: white;
-            width: 120px; height: 45px;
-            border-radius: 30px;
-            border: 2px solid var(--cloud-border);
-            background-image: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                var(--cloud-texture) 10px,
-                var(--cloud-texture) 20px
-            );
-            animation: moveCloud linear infinite;
+            width: 140px; height: 55px;
+            border-radius: 40px;
+            border: 2.5px solid var(--primary-pink);
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 12px, var(--cloud-texture) 12px, var(--cloud-texture) 24px);
+            animation: moveClouds linear infinite;
+            z-index: 1;
         }
+        @keyframes moveClouds { from { transform: translateX(110vw); } to { transform: translateX(-50vw); } }
 
-        @keyframes moveCloud {
-            from { transform: translateX(110vw); }
-            to { transform: translateX(-30vw); }
-        }
-
-        #historyList {
-            text-align: left;
-            max-height: 200px;
-            overflow-y: auto;
-            margin: 15px 0;
-            font-size: 0.9rem;
-            border-top: 1px solid #eee;
-        }
-        .history-item { padding: 8px 0; border-bottom: 1px dashed #ddd; }
         .hidden { display: none; }
-        #timerDisplay { font-size: 3.5rem; color: #444; margin: 15px 0; font-weight: bold; }
+        #timerText { font-size: 5rem; color: #444; margin: 25px 0; font-weight: bold; font-family: 'Arial', sans-serif; }
+        .tag { display: inline-block; padding: 6px 20px; border-radius: 20px; font-weight: bold; margin-bottom: 10px; font-size: 0.9rem; }
+        .tag-focus { background: #ffebee; color: #d32f2f; }
+        .tag-rest { background: #e0f2f1; color: #00796b; }
     </style>
 </head>
 <body>
 
-    <div id="scrollBackground">
-        北冥有魚，其名為鯤。鯤之大，不知其幾千里也。化而為鳥，其名為鵬。鵬之背，不知其幾千里也；怒而飛，其翼若垂天之雲。是鳥也，海運則將徙於南冥。南冥者，天池也。齊諧者，志怪者也。諧之言曰：「鵬之徙於南冥也，水擊三千里，摶扶搖而上者九萬里，去以六月息者也。」野馬也，塵埃也，生物之以息相吹也。天之蒼蒼，其正色邪？其遠而無所至極邪？其視下也亦若是，則已矣。且夫水之積也不厚，則負大舟也無力。覆杯水於坳堂之上，則芥為之舟，置杯焉則膠，水淺而舟大也。風之積也不厚，則其負大翼也無力。故九萬里則風斯在下矣，而後乃今培風；背負青天而莫之夭閼者，而後乃今將圖南。蜩與學鳩笑之曰：「我決起而飛，槍1榆、枋，時則不至而控於地而已矣，奚以之九萬里而南為？」適莽蒼者三湌而反，腹猶果然；適百里者宿舂糧；適千里者三月聚糧。之二蟲又何知！小知不及大知，小年不及大年。奚以知其然也？朝菌不知晦朔，蟪蛄不知春秋，此小年也。楚之南有冥靈者，以五百歲為春，五百歲為秋；上古有大椿者，以八千歲為春，八千歲為秋。而彭祖乃今以久特聞，眾人匹之，不亦悲乎！
+    <div id="scrollContainer">
+        <div class="scroll-text-layer" id="txt1"></div>
+        <div class="scroll-text-layer layer-2" id="txt2"></div>
     </div>
 
-    <div class="cloud-container" id="clouds"></div>
+    <div id="finalMessage">
+        回頭看 輕舟已過萬重山<br>
+        往前看 前路亦漫漫
+    </div>
 
-    <div class="wing-container">
-        <div id="wings">
-            <div class="wing wing-left"></div>
-            <div class="wing wing-right"></div>
-        </div>
+    <div id="cloudSpace"></div>
 
-        <div id="app">
+    <div class="app-container">
+        <div id="appBox">
             <div id="setupPage">
                 <h1>專注♡⸝⸝番茄鐘</h1>
                 <input type="text" id="taskName" placeholder="輸入專注的事物...">
                 <input type="number" id="focusTime" placeholder="專注時間 (分)" min="1">
                 <input type="number" id="restTime" placeholder="休息時間 (分)" min="1">
                 <br>
-                <button onclick="startFocus()">確定</button>
-                <button onclick="showHistory()" style="background:#f8d7da; color:#721c24;">歷途專注紀錄</button>
+                <button onclick="beginFlow()">確定</button>
+                <button onclick="showLogs()" style="background:#f8d7da; color:#721c24; font-size: 0.85rem;">歷途紀錄</button>
             </div>
 
             <div id="timerPage" class="hidden">
-                <h2 id="displayTask" style="color:var(--primary-color)">任務中</h2>
-                <div id="timerDisplay">00:00</div>
+                <div id="modeTag" class="tag"></div>
+                <h2 id="taskTitle" style="color:#555; margin:0;"></h2>
+                <div id="timerText">00:00</div>
                 <button id="pauseBtn" onclick="togglePause()">STOP</button>
             </div>
 
-            <div id="historyPage" class="hidden">
-                <h2>歷途專注紀錄</h2>
-                <div id="historyList"></div>
-                <button onclick="showPage('setupPage')">回上一頁</button>
+            <div id="logPage" class="hidden">
+                <h2 style="color:var(--primary-pink)">歷途專注紀錄</h2>
+                <div id="logList" style="text-align:left; max-height:280px; overflow-y:auto; margin:15px 0; border-top:1px solid #eee;"></div>
+                <button onclick="showPage('setupPage')">返回設定</button>
             </div>
 
             <div id="resultPage" class="hidden">
-                <h2>專注完成 ♡</h2>
-                <div id="summary"></div>
+                <h2 style="color:var(--primary-pink)">完成專注之旅 ♡</h2>
+                <div id="sessionResult"></div>
                 <button onclick="location.reload()">回首頁</button>
             </div>
         </div>
     </div>
 
     <script>
-        let timer, seconds = 0, isPaused = false, pauseCount = 0;
-        let currentTask = "", fMin = 0, rMin = 0;
+        const scrollContent = `北冥有魚，其名為鯤。鯤之大，不知其幾千里也。化而為鳥，其名為鵬。鵬之背，不知其幾千里也；怒而飛，其翼若垂天之雲。是鳥也，海運則將徙於南冥。南冥者，天池也。齊諧者，志怪者也。諧之言曰：「鵬之徙於南冥也，水擊三千里，摶扶搖而上者九萬里，去以六月息者也。」野馬也，塵埃也，生物之以息相吹也。天之蒼蒼，其正色邪？其遠而無所至極邪？其視下也亦若是，則已矣。且夫水之積也不厚，則負大舟也無力。覆杯水於坳堂之上，則芥為之舟，置杯焉則膠，水淺而舟大也。風之積也不厚，則其負大翼也無力。故九萬里則風斯在下矣，而後乃今培風；背負青天而莫之夭閼者，而後乃今將圖南。蜩與學鳩笑之曰：「我決起而飛，槍1榆、枋，時則不至而控於地而已矣，奚以之九萬里而南為？」適莽蒼者三湌而反，腹猶果然；適百里者宿舂糧；適千里者三月聚糧。之二蟲又何知！小知不及大知，小年不及大年。奚以知其然也？朝菌不知晦朔，蟪蛄不知春秋，此小年也。楚之南有冥靈者，以五百歲為春，五百歲為秋；上古有大椿者，以八千歲為春，八千歲為秋。而彭祖乃今以久特聞，眾人匹之，不亦悲乎！\n\n湯之問棘也是已。窮髮之北，有冥海者，天池也。有魚焉，其廣數千里，未有知其脩者，其名為鯤。有鳥焉，其名為鵬，背若泰山，翼若垂天之雲，摶扶搖羊角而上者九萬里，絕雲氣，負青天，然後圖南，且適南冥也。斥鴳笑之曰：「彼且奚適也？我騰躍而上，不過數仞而下，翱翔蓬蒿之間，此亦飛之至也。而彼且奚適也？」此小大之辯也。`;
 
-        function createClouds() {
-            const container = document.getElementById('clouds');
+        document.getElementById('txt1').innerText = scrollContent;
+        document.getElementById('txt2').innerText = scrollContent;
+
+        let clock, timerSec = 0, isPaused = false, stopCount = 0;
+        let task = "", fMin = 0, rMin = 0, state = 'focus';
+
+        function makeClouds() {
+            const container = document.getElementById('cloudSpace');
             for(let i=0; i<6; i++) {
-                let cloud = document.createElement('div');
-                cloud.className = 'cloud';
-                cloud.style.top = Math.random() * 85 + '%';
-                cloud.style.animationDuration = (Math.random() * 15 + 15) + 's';
-                cloud.style.animationDelay = (Math.random() * 10) + 's';
-                container.appendChild(cloud);
+                let c = document.createElement('div');
+                c.className = 'floating-cloud';
+                c.style.top = Math.random() * 85 + '%';
+                c.style.animationDuration = (Math.random() * 15 + 25) + 's';
+                c.style.animationDelay = (Math.random() * 10) + 's';
+                container.appendChild(c);
             }
         }
-        createClouds();
+        makeClouds();
 
-        function startFocus() {
-            currentTask = document.getElementById('taskName').value || "未命名";
+        function beginFlow() {
+            task = document.getElementById('taskName').value || "未命名任務";
             fMin = parseInt(document.getElementById('focusTime').value) || 0;
             rMin = parseInt(document.getElementById('restTime').value) || 0;
             if (fMin <= 0) return alert("請輸入專注時間");
 
-            document.getElementById('wings').style.display = 'none';
-            const bgText = document.getElementById('scrollBackground');
-            bgText.style.display = 'block';
-            bgText.classList.add('scrolling');
-
-            document.getElementById('displayTask').innerText = currentTask;
+            document.getElementById('scrollContainer').style.display = 'block';
+            
+            state = 'focus';
+            timerSec = fMin * 60;
+            stopCount = 0;
             showPage('timerPage');
-            seconds = fMin * 60;
-            runTimer();
+            refreshUI();
+            startClock();
         }
 
-        function runTimer() {
-            if(timer) clearInterval(timer);
-            timer = setInterval(() => {
+        function startClock() {
+            if(clock) clearInterval(clock);
+            clock = setInterval(() => {
                 if (!isPaused) {
-                    seconds--;
-                    updateDisplay();
-                    if (seconds <= 0) {
-                        clearInterval(timer);
-                        finishSession();
+                    timerSec--;
+                    renderTime();
+                    if (timerSec <= 0) {
+                        if (state === 'focus') {
+                            state = 'rest';
+                            timerSec = rMin * 60;
+                            if (timerSec <= 0) endAll();
+                            else refreshUI();
+                        } else {
+                            endAll();
+                        }
                     }
                 }
             }, 1000);
         }
 
-        function updateDisplay() {
-            let m = Math.floor(seconds / 60);
-            let s = seconds % 60;
-            document.getElementById('timerDisplay').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        function refreshUI() {
+            const tag = document.getElementById('modeTag');
+            tag.innerText = state === 'focus' ? "正在專注" : "正在休息";
+            tag.className = `tag ${state === 'focus' ? 'tag-focus' : 'tag-rest'}`;
+            document.getElementById('taskTitle').innerText = task;
+        }
+
+        function renderTime() {
+            let m = Math.floor(timerSec / 60);
+            let s = timerSec % 60;
+            document.getElementById('timerText').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
         function togglePause() {
             isPaused = !isPaused;
             const btn = document.getElementById('pauseBtn');
-            const bgText = document.getElementById('scrollBackground');
+            const scrolls = document.querySelectorAll('.scroll-text-layer');
             if (isPaused) {
-                pauseCount++;
+                stopCount++;
                 btn.innerText = "繼續";
-                bgText.style.animationPlayState = 'paused';
+                scrolls.forEach(s => s.style.animationPlayState = 'paused');
             } else {
                 btn.innerText = "STOP";
-                bgText.style.animationPlayState = 'running';
+                scrolls.forEach(s => s.style.animationPlayState = 'running');
             }
         }
 
-        function finishSession() {
-            saveHistory();
+        function endAll() {
+            clearInterval(clock);
+            saveToLogs();
+            document.getElementById('scrollContainer').style.display = 'none';
+            
+            const msg = document.getElementById('finalMessage');
+            msg.style.display = 'block';
+            setTimeout(() => { msg.style.display = 'none'; }, 30000);
+
             showPage('resultPage');
-            document.getElementById('scrollBackground').style.display = 'none';
-            document.getElementById('summary').innerHTML = `
-                <p>專注時長：${fMin} 分鐘</p>
-                <p>休息時長：${rMin} 分鐘</p>
-                <p>暫停次數：${pauseCount} 次</p>
+            document.getElementById('sessionResult').innerHTML = `
+                <p>專注項目：${task}</p>
+                <p>專注長度：${fMin} 分鐘 / 休息：${rMin} 分鐘</p>
+                <p>中途停止：${stopCount} 次</p>
             `;
         }
 
-        function saveHistory() {
-            const records = JSON.parse(localStorage.getItem('pomodoro_history') || "[]");
-            const now = new Date();
-            records.unshift({
-                name: currentTask,
-                date: `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()}`,
-                time: fMin
-            });
-            localStorage.setItem('pomodoro_history', JSON.stringify(records));
+        function saveToLogs() {
+            const history = JSON.parse(localStorage.getItem('angel_focus_logs') || "[]");
+            history.unshift({ task, date: new Date().toLocaleDateString(), duration: fMin });
+            localStorage.setItem('angel_focus_logs', JSON.stringify(history.slice(0, 30)));
         }
 
-        function showHistory() {
-            showPage('historyPage');
-            const list = document.getElementById('historyList');
-            const records = JSON.parse(localStorage.getItem('pomodoro_history') || "[]");
-            list.innerHTML = records.map(r => `
-                <div class="history-item">
-                    <strong>${r.name}</strong> (${r.date})<br>專注了 ${r.time} 分鐘
+        function showLogs() {
+            showPage('logPage');
+            const list = document.getElementById('logList');
+            const history = JSON.parse(localStorage.getItem('angel_focus_logs') || "[]");
+            list.innerHTML = history.map(h => `
+                <div style="padding:12px; border-bottom:1px solid #f0f0f0;">
+                    <strong>${h.task}</strong> <small style="color:#999">(${h.date})</small><br>
+                    專注時長：${h.duration} 分鐘
                 </div>
             `).join('');
         }
 
         function showPage(id) {
-            ['setupPage', 'timerPage', 'resultPage', 'historyPage'].forEach(p => {
+            ['setupPage', 'timerPage', 'resultPage', 'logPage'].forEach(p => {
                 document.getElementById(p).classList.add('hidden');
             });
             document.getElementById(id).classList.remove('hidden');
-            if(id === 'setupPage') document.getElementById('wings').style.display = 'block';
         }
     </script>
 </body>
