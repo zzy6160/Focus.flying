@@ -58,7 +58,7 @@
             to { transform: translateY(-100%); }
         }
 
-        /* 終點金句：30秒消失 */
+        /* 終點金句：20秒消失 */
         #finalMessage {
             position: fixed;
             top: 50%;
@@ -97,6 +97,24 @@
 
         h1 { color: var(--primary-color); font-size: 2rem; margin-top: 0; letter-spacing: 1px; transition: color 0.3s; }
         
+        /* 時間輸入框並排樣式 */
+        .time-input-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 5px;
+            margin: 12px 0;
+        }
+        .time-input-group input {
+            margin: 0;
+            width: 45%;
+        }
+        .time-label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: bold;
+        }
+
         input {
             width: 100%;
             padding: 16px;
@@ -216,8 +234,21 @@
                 </div>
 
                 <input type="text" id="taskName" placeholder="輸入專注的事物...">
-                <input type="number" id="focusTime" placeholder="專注時間 (分)" min="1">
-                <input type="number" id="restTime" placeholder="休息時間 (分)" min="1">
+                
+                <div class="time-input-group">
+                    <input type="number" id="focusMin" placeholder="專注(分)" min="0" value="25">
+                    <span class="time-label">分</span>
+                    <input type="number" id="focusSec" placeholder="專注(秒)" min="0" max="59" value="0">
+                    <span class="time-label">秒</span>
+                </div>
+                
+                <div class="time-input-group">
+                    <input type="number" id="restMin" placeholder="休息(分)" min="0" value="5">
+                    <span class="time-label">分</span>
+                    <input type="number" id="restSec" placeholder="休息(秒)" min="0" max="59" value="0">
+                    <span class="time-label">秒</span>
+                </div>
+                
                 <br>
                 <button onclick="beginFlow()">確定</button>
                 <button onclick="showLogs()" style="background:#f8d7da; color:#721c24; font-size: 0.85rem;">歷途紀錄</button>
@@ -257,7 +288,7 @@
         document.getElementById('txt2').innerText = scrollContent;
 
         let clock, timerSec = 0, isPaused = false, stopCount = 0;
-        let task = "", fMin = 0, rMin = 0, state = 'focus';
+        let task = "", totalFocusMinutes = 0, rMin = 0, rSec = 0, state = 'focus';
 
         function makeClouds() {
             const container = document.getElementById('cloudSpace');
@@ -285,15 +316,23 @@
 
         function beginFlow() {
             task = document.getElementById('taskName').value || "未命名任務";
-            fMin = parseInt(document.getElementById('focusTime').value) || 0;
-            rMin = parseInt(document.getElementById('restTime').value) || 0;
-            if (fMin <= 0) return alert("請輸入專注時間");
+            
+            // 讀取分與秒
+            let fMin = parseInt(document.getElementById('focusMin').value) || 0;
+            let fSec = parseInt(document.getElementById('focusSec').value) || 0;
+            rMin = parseInt(document.getElementById('restMin').value) || 0;
+            rSec = parseInt(document.getElementById('restSec').value) || 0;
+            
+            let totalFocusSec = (fMin * 60) + fSec;
+            totalFocusMinutes = totalFocusSec / 60; // 保留精確的專注總分鐘數用於後續條件計算
+
+            if (totalFocusSec <= 0) return alert("請輸入有效的專注時間");
 
             document.getElementById('gearBtn').style.display = 'none'; 
             document.getElementById('scrollContainer').style.display = 'block';
             
             state = 'focus';
-            timerSec = fMin * 60;
+            timerSec = totalFocusSec;
             stopCount = 0;
             
             document.getElementById('noticeArea').classList.add('hidden');
@@ -330,7 +369,7 @@
             document.getElementById('pauseBtn').style.display = 'inline-block';
             
             state = 'rest';
-            timerSec = rMin * 60;
+            timerSec = (rMin * 60) + rSec;
             
             if (timerSec <= 0) {
                 endAll();
@@ -375,7 +414,7 @@
             // 判斷金句機制
             // 條件1：平均5分鐘就暫停一次（專注總分鐘數 ÷ 暫停次數 <= 5）
             // 條件2：總暫停次數超過 10 次
-            const isTooManyPauses = (stopCount > 0 && (fMin / stopCount) <= 5);
+            const isTooManyPauses = (stopCount > 0 && (totalFocusMinutes / stopCount) <= 5);
             const isOverTenTimes = (stopCount > 10);
             
             const msgBox = document.getElementById('finalMessage');
@@ -385,20 +424,27 @@
                 msgBox.innerHTML = `回頭看 輕舟已過萬重山<br>往前看 前路亦漫漫`;
             }
             
+            // 調快為 20 秒後消失 (20000 毫秒)
             msgBox.style.display = 'block';
-            setTimeout(() => { msgBox.style.display = 'none'; }, 30000);
+            setTimeout(() => { msgBox.style.display = 'none'; }, 20000);
 
             showPage('resultPage');
+            
+            // 格式化顯示報告結果
+            let displayFocusText = totalFocusMinutes >= 1 ? `${Math.floor(totalFocusMinutes)} 分鐘` : `${Math.round(totalFocusMinutes * 60)} 秒`;
+            let displayRestText = rMin > 0 || rSec > 0 ? `${rMin} 分 ${rSec} 秒` : `0 秒`;
+            
             document.getElementById('sessionResult').innerHTML = `
                 <p>專注項目：${task}</p>
-                <p>專注長度：${fMin} 分鐘 / 休息：${rMin} 分鐘</p>
+                <p>專注長度：${displayFocusText} / 休息：${displayRestText}</p>
                 <p>中途停止：${stopCount} 次</p>
             `;
         }
 
         function saveToLogs() {
             const history = JSON.parse(localStorage.getItem('angel_focus_logs') || "[]");
-            history.unshift({ task, date: new Date().toLocaleDateString(), duration: fMin });
+            let logDuration = totalFocusMinutes >= 1 ? `${Math.floor(totalFocusMinutes)}分` : `${Math.round(totalFocusMinutes * 60)}秒`;
+            history.unshift({ task, date: new Date().toLocaleDateString(), duration: logDuration });
             localStorage.setItem('angel_focus_logs', JSON.stringify(history.slice(0, 30)));
         }
 
@@ -410,7 +456,7 @@
             list.innerHTML = history.map(h => `
                 <div style="padding:12px; border-bottom:1px solid #f0f0f0;">
                     <strong>${h.task}</strong> <small style="color:#999">(${h.date})</small><br>
-                    專注時長：${h.duration} 分鐘
+                    專注時長：${h.duration}
                 </div>
             `).join('');
         }
